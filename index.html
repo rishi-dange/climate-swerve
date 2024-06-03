@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climate Change Beliefs and Persuasion By Political Affiliation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .content {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        p {
+            line-height: 1.6;
+        }
+        #question-select, #persuasion-question-select {
+            margin: 20px 0;
+        }
+        label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        select {
+            padding: 5px;
+            margin-left: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .chart {
+            margin: 20px 0;
+        }
+        .hover-text {
+            font-size: 14px;
+            color: #666;
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+        footer {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #2c3e50;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .btn-group {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+        }
+        .btn-group button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-group button:hover {
+            background-color: #2980b9;
+        }
+        svg {
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Climate Change Beliefs and Persuasion By Political Affiliation</h1>
+        <h2>When it comes to persuading people about the existence and causes of climate change, Republicans are more effective than even the experts.</h2>
+        <h3>Rishi Dange and Alex Kiam, 2024</h3>
+        <p>We looked at a 2018 study from UConn and DePauw researchers about the relationship between political preferences and beliefs about climate change. Following data cleaning, we had raw data from a total of 1528 survey responses.</p>
+        <p>The study asked people to respond with a rating of 1-10 for three statements or questions regarding climate change. Unsurprisingly, the study showed that Democrats are more likely than Republicans to accept the scientific consensus regarding climate change and its importance. In the following charts, the x-axis is a 1-7 scale of strong Democrat (1) to strong Republican (7) representing the pre-survey affiliation of the survey responder. Hover over a bar for more information.</p>
+        <div id="question-select">
+            <label for="questions">Select a question to see the chart:</label>
+            <select id="questions">
+                <option value="CChumans">The problem of climate change is mainly due to human activity such as burning fossil fuels.</option>
+                <option value="CCserious">How important a problem do you think climate change is at this moment, on a scale of 1–10?</option>
+                <option value="CCbelief">There is a general consensus among scientists that the average temperature on earth has been getting warmer over the past few decades.</option>
+            </select>
+        </div>
+        <div id="charts"></div>
+    </div>
+
+    <div class="content">
+        <p>While it’s clear that Democrats are more persuaded that climate change is caused by humans, that climate change is real, and that climate change is a serious issue, this study also addressed a different question: who is more persuasive on climate change?</p>
+        <p>To determine this, the authors provided the participants with information that supported the scientific consensus regarding climate change. However, in some cases, they attributed this information to a Democrat; in other cases, they attributed it to a Republican; in other cases, they attributed it to a scientist.</p>
+        <p>Click on the party affiliation buttons to see how much people in each party can be persuaded by Democrats, Republicans, and scientific experts. The blue arrow represents persuasion by Democrats, the red arrow represents persuasion by Republicans, and the green arrow represents persuasion by scientists.</p>
+        <p>So, the color of the arrow represents who’s doing the persuading, whereas the party affiliation (the x-axis, with 1 being most Democrat and 7 being most Republican) represents who’s being persuaded. Hover over a bar or an arrow for more information. The bar (the control group) includes responses from people that were not persuaded by anyone.</p>
+        <div id="persuasion-question-select">
+            <label for="persuasion-questions">Select a question to see the persuasion chart:</label>
+            <select id="persuasion-questions">
+                <option value="CChumans">The problem of climate change is mainly due to human activity such as burning fossil fuels.</option>
+                <option value="CCserious">How important a problem do you think climate change is at this moment, on a scale of 1–10?</option>
+                <option value="CCbelief">There is a general consensus among scientists that the average temperature on earth has been getting warmer over the past few decades.</option>
+            </select>
+        </div>
+        <div id="persuasion-chart"></div>
+    </div>
+
+    <footer>
+        <p>Created by Rishi Dange and Alex Kiam as a part of Stanford University’s Design 255 course. Created with the help of results from the 2018 paper “Correcting misinformation about climate change: the impact of partisanship in an experimental setting” by Salil D. Benegal and Lyle A. Scruggs and produced using the assistance of ChatGPT.</p>
+    </footer>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            d3.json('clean_trunc.json').then(function(data) {
+                if (typeof data === 'string') {
+                    data = JSON.parse(data);
+                }
+
+                const questions = {
+                    "CCbelief": "There is a general consensus among scientists that the average temperature on earth has been getting warmer over the past few decades.",
+                    "CChumans": "The problem of climate change is mainly due to human activity such as burning fossil fuels.",
+                    "CCserious": "How important a problem do you think climate change is at this moment, on a scale of 1–10?"
+                };
+
+                const chartContainer = d3.select('#charts');
+                const persuasionContainer = d3.select('#persuasion-chart');
+                const questionSelect = d3.select('#questions');
+                const persuasionQuestionSelect = d3.select('#persuasion-questions');
+
+                // Function to create charts
+                function createChart(question) {
+                    // Clear existing chart
+                    chartContainer.html('');
+
+                    // Filter data for control group
+                    const filteredData = data.filter(d => d.treatments === 'Control');
+
+                    // Aggregate data by pid7
+                    const aggregatedData = d3.rollup(filteredData, v => ({
+                        mean: d3.mean(v, d => d[question]),
+                        count: v.length,
+                        sexCount: d3.rollup(v, vv => vv.length, d => d.sex)
+                    }), d => d.pid7);
+
+                    const chartData = Array.from(aggregatedData, ([pid7, values]) => ({
+                        pid7, ...values
+                    })).sort((a, b) => b.pid7 - a.pid7);
+
+                    const x = d3.scaleBand()
+                        .domain(chartData.map(d => d.pid7)) // Adjust domain to 8 - pid7
+                        .range([0, 800])
+                        .padding(0.1);
+                    const y = d3.scaleLinear()
+                        .domain([0, 10])
+                        .nice()
+                        .range([420, 0]); // Adjusted range with padding
+
+                    const svg = chartContainer.append('svg')
+                        .attr('width', 900)
+                        .attr('height', 500);
+
+                    svg.append('g')
+                        .attr('transform', 'translate(50, 450)') // Adjusted translation
+                        .call(d3.axisBottom(x).tickFormat((d, i) => {
+                            if (i === 0) return '1 (Strong Democrat)';
+                            if (i === 6) return '7 (Strong Republican)';
+                            return 8 - d; // Adjust tick format to show 8 - pid7
+                        }))
+                        .selectAll("text")
+                        .style("text-anchor", "middle") // Center the text
+                        .attr("dx", "0em")
+                        .attr("dy", "0.75em");
+
+                    svg.append('g')
+                        .attr('transform', 'translate(50, 20)') // Adjusted translation
+                        .call(d3.axisLeft(y));
+
+                    // Create bars
+                    svg.selectAll('.bar')
+                        .data(chartData)
+                        .enter().append('rect')
+                        .attr('class', 'bar')
+                        .attr('x', d => x(d.pid7) + 50)
+                        .attr('y', d => y(d.mean) + 20) // Adjusted y attribute
+                        .attr('width', x.bandwidth())
+                        .attr('height', d => 420 - y(d.mean)) // Adjusted height
+                        .attr('fill', '#3498db')
+                        .on('mouseover', function(event, d) {
+                            d3.select(this).attr('fill', '#2980b9');
+                            // Show hover text
+                            chartContainer.append('div')
+                                .attr('class', 'hover-text')
+                                .html(`Sample size: ${d.count}<br>Male: ${d.sexCount?.get('Male') || 0}<br>Female: ${d.sexCount?.get('Female') || 0}`)
+                                .style('left', `${event.pageX}px`)
+                                .style('top', `${event.pageY}px`);
+                        })
+                        .on('mouseout', function() {
+                            d3.select(this).attr('fill', '#3498db');
+                            d3.select('.hover-text').remove();
+                        });
+                }
+
+                // Function to create persuasion chart
+                function createPersuasionChart(question) {
+                    persuasionContainer.html('');
+
+                    // Filter data
+                    const controlData = data.filter(d => d.treatments === 'Control');
+                    const democratData = data.filter(d => d.treatments === 'Democrat');
+                    const republicanData = data.filter(d => d.treatments === 'Republican');
+                    const scientistData = data.filter(d => d.treatments === 'Scientist');
+
+                    // Aggregate data by pid7
+                    const aggregatedControlData = d3.rollup(controlData, v => ({
+                        mean: d3.mean(v, d => d[question]),
+                        count: v.length,
+                        sexCount: d3.rollup(v, vv => vv.length, d => d.sex)
+                    }), d => d.pid7);
+
+                    const aggregatedDemocratData = d3.rollup(democratData, v => ({
+                        mean: d3.mean(v, d => d[question]),
+                        count: v.length,
+                        sexCount: d3.rollup(v, vv => vv.length, d => d.sex)
+                    }), d => d.pid7);
+
+                    const aggregatedRepublicanData = d3.rollup(republicanData, v => ({
+                        mean: d3.mean(v, d => d[question]),
+                        count: v.length,
+                        sexCount: d3.rollup(v, vv => vv.length, d => d.sex)
+                    }), d => d.pid7);
+
+                    const aggregatedScientistData = d3.rollup(scientistData, v => ({
+                        mean: d3.mean(v, d => d[question]),
+                        count: v.length,
+                        sexCount: d3.rollup(v, vv => vv.length, d => d.sex)
+                    }), d => d.pid7);
+
+                    const chartData = Array.from(aggregatedControlData, ([pid7, control]) => ({
+                        pid7,
+                        control,
+                        democrat: aggregatedDemocratData.get(pid7)?.mean,
+                        democratCount: aggregatedDemocratData.get(pid7)?.count,
+                        democratSexCount: aggregatedDemocratData.get(pid7)?.sexCount,
+                        republican: aggregatedRepublicanData.get(pid7)?.mean,
+                        republicanCount: aggregatedRepublicanData.get(pid7)?.count,
+                        republicanSexCount: aggregatedRepublicanData.get(pid7)?.sexCount,
+                        scientist: aggregatedScientistData.get(pid7)?.mean,
+                        scientistCount: aggregatedScientistData.get(pid7)?.count,
+                        scientistSexCount: aggregatedScientistData.get(pid7)?.sexCount
+                    })).sort((a, b) => b.pid7 - a.pid7);
+
+                    // Create scales and axes
+                    const x = d3.scaleBand()
+                        .domain(chartData.map(d => d.pid7)) // Adjust domain to 8 - pid7
+                        .range([0, 800])
+                        .padding(0.1);
+                    const y = d3.scaleLinear()
+                        .domain([0, 10])
+                        .nice()
+                        .range([420, 0]); // Adjusted range with padding
+
+                    const svg = persuasionContainer.append('svg')
+                        .attr('width', 900)
+                        .attr('height', 500);
+
+                    svg.append('g')
+                        .attr('transform', 'translate(50, 450)') // Adjusted translation
+                        .call(d3.axisBottom(x).tickFormat((d, i) => {
+                            if (i === 0) return '1 (Strong Democrat)';
+                            if (i === 6) return '7 (Strong Republican)';
+                            return 8 - d; // Adjust tick format to show 8 - pid7
+                        }))
+                        .selectAll("text")
+                        .style("text-anchor", "middle") // Center the text
+                        .attr("dx", "0em")
+                        .attr("dy", "0.75em");
+
+                    svg.append('g')
+                        .attr('transform', 'translate(50, 20)') // Adjusted translation
+                        .call(d3.axisLeft(y));
+
+                    // Create bars
+                    svg.selectAll('.bar')
+                        .data(chartData)
+                        .enter().append('rect')
+                        .attr('class', 'bar')
+                        .attr('x', d => x(d.pid7) + 50)
+                        .attr('y', d => y(d.control.mean) + 20) // Adjusted y attribute
+                        .attr('width', x.bandwidth())
+                        .attr('height', d => 420 - y(d.control.mean)) // Adjusted height
+                        .attr('fill', '#3498db')
+                        .on('mouseover', function(event, d) {
+                            d3.select(this).attr('fill', '#2980b9');
+                            // Show hover text
+                            persuasionContainer.append('div')
+                                .attr('class', 'hover-text')
+                                .html(`Control: ${d.control.mean.toFixed(2)}<br>Sample size: ${d.control.count}<br>Male: ${d.control.sexCount?.get('Male') || 0}<br>Female: ${d.control.sexCount?.get('Female') || 0}`)
+                                .style('left', `${event.pageX}px`)
+                                .style('top', `${event.pageY}px`);
+                        })
+                        .on('mouseout', function() {
+                            d3.select(this).attr('fill', '#3498db');
+                            d3.select('.hover-text').remove();
+                        });
+
+                    // Add arrows for Democrat, Republican, Scientist persuasion with horizontal shifts
+                    svg.selectAll('.arrow-democrat')
+                        .data(chartData)
+                        .enter().append('line')
+                        .attr('class', 'arrow-democrat')
+                        .attr('x1', d => x(d.pid7) + x.bandwidth() / 2 + 40)
+                        .attr('x2', d => x(d.pid7) + x.bandwidth() / 2 + 40)
+                        .attr('y1', d => y(d.control.mean) + 20) // Adjusted y attribute
+                        .attr('y2', d => y(d.democrat) + 20) // Adjusted y attribute
+                        .attr('stroke', 'blue')
+                        .attr('stroke-width', 2)
+                        .attr('marker-end', 'url(#arrow-blue)')
+                        .on('mouseover', function(event, d) {
+                            d3.select(this).attr('stroke', '#0000ff');
+                            persuasionContainer.append('div')
+                                .attr('class', 'hover-text')
+                                .html(`Democrat: ${d.democrat.toFixed(2)}<br>Sample size: ${d.democratCount}<br>Male: ${d.democratSexCount?.get('Male') || 0}<br>Female: ${d.democratSexCount?.get('Female') || 0}`)
+                                .style('left', `${event.pageX}px`)
+                                .style('top', `${event.pageY}px`);
+                        })
+                        .on('mouseout', function() {
+                            d3.select(this).attr('stroke', 'blue');
+                            d3.select('.hover-text').remove();
+                        });
+
+                    svg.selectAll('.arrow-republican')
+                        .data(chartData)
+                        .enter().append('line')
+                        .attr('class', 'arrow-republican')
+                        .attr('x1', d => x(d.pid7) + x.bandwidth() / 2 + 50)
+                        .attr('x2', d => x(d.pid7) + x.bandwidth() / 2 + 50)
+                        .attr('y1', d => y(d.control.mean) + 20) // Adjusted y attribute
+                        .attr('y2', d => y(d.republican) + 20) // Adjusted y attribute
+                        .attr('stroke', 'red')
+                        .attr('stroke-width', 2)
+                        .attr('marker-end', 'url(#arrow-red)')
+                        .on('mouseover', function(event, d) {
+                            d3.select(this).attr('stroke', '#ff0000');
+                            persuasionContainer.append('div')
+                                .attr('class', 'hover-text')
+                                .html(`Republican: ${d.republican.toFixed(2)}<br>Sample size: ${d.republicanCount}<br>Male: ${d.republicanSexCount?.get('Male') || 0}<br>Female: ${d.republicanSexCount?.get('Female') || 0}`)
+                                .style('left', `${event.pageX}px`)
+                                .style('top', `${event.pageY}px`);
+                        })
+                        .on('mouseout', function() {
+                            d3.select(this).attr('stroke', 'red');
+                            d3.select('.hover-text').remove();
+                        });
+
+                    svg.selectAll('.arrow-scientist')
+                        .data(chartData)
+                        .enter().append('line')
+                        .attr('class', 'arrow-scientist')
+                        .attr('x1', d => x(d.pid7) + x.bandwidth() / 2 + 60)
+                        .attr('x2', d => x(d.pid7) + x.bandwidth() / 2 + 60)
+                        .attr('y1', d => y(d.control.mean) + 20) // Adjusted y attribute
+                        .attr('y2', d => y(d.scientist) + 20) // Adjusted y attribute
+                        .attr('stroke', 'green')
+                        .attr('stroke-width', 2)
+                        .attr('marker-end', 'url(#arrow-green)')
+                        .on('mouseover', function(event, d) {
+                            d3.select(this).attr('stroke', '#00ff00');
+                            persuasionContainer.append('div')
+                                .attr('class', 'hover-text')
+                                .html(`Scientist: ${d.scientist.toFixed(2)}<br>Sample size: ${d.scientistCount}<br>Male: ${d.scientistSexCount?.get('Male') || 0}<br>Female: ${d.scientistSexCount?.get('Female') || 0}`)
+                                .style('left', `${event.pageX}px`)
+                                .style('top', `${event.pageY}px`);
+                        })
+                        .on('mouseout', function() {
+                            d3.select(this).attr('stroke', 'green');
+                            d3.select('.hover-text').remove();
+                        });
+
+                    // Define arrow markers
+                    svg.append('defs').append('marker')
+                        .attr('id', 'arrow-blue')
+                        .attr('viewBox', '0 0 10 10')
+                        .attr('refX', 5)
+                        .attr('refY', 5)
+                        .attr('markerWidth', 6)
+                        .attr('markerHeight', 6)
+                        .attr('orient', 'auto-start-reverse')
+                        .append('path')
+                        .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+                        .attr('fill', 'blue');
+
+                    svg.append('defs').append('marker')
+                        .attr('id', 'arrow-green')
+                        .attr('viewBox', '0 0 10 10')
+                        .attr('refX', 5)
+                        .attr('refY', 5)
+                        .attr('markerWidth', 6)
+                        .attr('markerHeight', 6)
+                        .attr('orient', 'auto-start-reverse')
+                        .append('path')
+                        .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+                        .attr('fill', 'green');
+
+                    svg.append('defs').append('marker')
+                        .attr('id', 'arrow-red')
+                        .attr('viewBox', '0 0 10 10')
+                        .attr('refX', 5)
+                        .attr('refY', 5)
+                        .attr('markerWidth', 6)
+                        .attr('markerHeight', 6)
+                        .attr('orient', 'auto-start-reverse')
+                        .append('path')
+                        .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+                        .attr('fill', 'red');
+                }
+
+                // Initial charts
+                createChart(questionSelect.node().value);
+                createPersuasionChart(persuasionQuestionSelect.node().value);
+
+                // Update charts on question change
+                questionSelect.on('change', function() {
+                    createChart(this.value);
+                });
+
+                persuasionQuestionSelect.on('change', function() {
+                    createPersuasionChart(this.value);
+                });
+            }).catch(function(error) {
+                console.error('Error loading or parsing data:', error);
+            });
+        });
+    </script>
+</body>
+</html>
