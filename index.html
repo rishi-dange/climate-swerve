@@ -326,6 +326,7 @@
                         .attr('stroke', 'blue')
                         .attr('stroke-width', 2)
                         .attr('marker-end', 'url(#arrow-blue)')
+                        .style('pointer-events', 'all') // Ensure line part has pointer-events enabled
                         .on('mouseover', function(event, d) {
                             d3.select(this).attr('stroke', '#0000ff');
                             persuasionContainer.append('div')
@@ -350,6 +351,7 @@
                         .attr('stroke', 'red')
                         .attr('stroke-width', 2)
                         .attr('marker-end', 'url(#arrow-red)')
+                        .style('pointer-events', 'all') // Ensure line part has pointer-events enabled
                         .on('mouseover', function(event, d) {
                             d3.select(this).attr('stroke', '#ff0000');
                             persuasionContainer.append('div')
@@ -374,6 +376,7 @@
                         .attr('stroke', 'green')
                         .attr('stroke-width', 2)
                         .attr('marker-end', 'url(#arrow-green)')
+                        .style('pointer-events', 'all') // Ensure line part has pointer-events enabled
                         .on('mouseover', function(event, d) {
                             d3.select(this).attr('stroke', '#00ff00');
                             persuasionContainer.append('div')
@@ -398,7 +401,8 @@
                         .attr('orient', 'auto-start-reverse')
                         .append('path')
                         .attr('d', 'M 0 0 L 10 5 L 0 10 z')
-                        .attr('fill', 'blue');
+                        .attr('fill', 'blue')
+                        .style('pointer-events', 'all'); // Added pointer-events
 
                     svg.append('defs').append('marker')
                         .attr('id', 'arrow-green')
@@ -410,7 +414,8 @@
                         .attr('orient', 'auto-start-reverse')
                         .append('path')
                         .attr('d', 'M 0 0 L 10 5 L 0 10 z')
-                        .attr('fill', 'green');
+                        .attr('fill', 'green')
+                        .style('pointer-events', 'all'); // Added pointer-events
 
                     svg.append('defs').append('marker')
                         .attr('id', 'arrow-red')
@@ -422,7 +427,8 @@
                         .attr('orient', 'auto-start-reverse')
                         .append('path')
                         .attr('d', 'M 0 0 L 10 5 L 0 10 z')
-                        .attr('fill', 'red');
+                        .attr('fill', 'red')
+                        .style('pointer-events', 'all'); // Added pointer-events
                 }
 
                 // Initial charts
